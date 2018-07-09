@@ -1,5 +1,5 @@
 # summary3
-This file mainly modified based on Statsmodels.iolib.summary2. Now you can use the function `summary_col()`
+This file mainly modified based on [statsmodels.iolib.summary2](https://github.com/statsmodels/statsmodels/blob/master/statsmodels/iolib/summary2.py). Now you can use the function `summary_col()`
 to output the results of multiple models with stars and export them as a excel/csv file.
 
 Next show some examples including OLS,GLM,GEE,LOGIT and Panel regression results.Other models do not test yet. 

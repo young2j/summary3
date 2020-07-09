@@ -1,7 +1,7 @@
 from statsmodels.compat.python import (lrange, iterkeys, iteritems, lzip,
-                                       reduce, itervalues, zip, string_types,
-                                       range)
-from statsmodels.compat.collections import OrderedDict
+                                       itervalues)
+from functools import reduce                   
+from collections import OrderedDict
 import numpy as np
 import pandas as pd
 import datetime
@@ -10,6 +10,7 @@ import textwrap
 # from .tableformatting import fmt_latex, fmt_txt
 from statsmodels.iolib.table import SimpleTable
 from statsmodels.iolib.tableformatting import fmt_latex, fmt_txt
+
 
 class Summary(object):
     def __init__(self):
@@ -31,7 +32,6 @@ class Summary(object):
     def add_df(self, df, index=True, header=True, float_format='%.4f',
                align='r'):
         '''Add the contents of a DataFrame to summary table
-
         Parameters
         ----------
         df : DataFrame
@@ -52,7 +52,6 @@ class Summary(object):
 
     def add_array(self, array, align='r', float_format="%.4f"):
         '''Add the contents of a Numpy array to summary table
-
         Parameters
         ----------
         array : numpy array (2D)
@@ -68,7 +67,6 @@ class Summary(object):
 
     def add_dict(self, d, ncols=2, align='l', float_format="%.4f"):
         '''Add the contents of a Dict to summary table
-
         Parameters
         ----------
         d : dict
@@ -104,7 +102,7 @@ class Summary(object):
         provided but a results instance is provided, statsmodels attempts
         to construct a useful title automatically.
         '''
-        if isinstance(title, string_types):
+        if isinstance(title, str):
             self.title = title
         else:
             try:
@@ -118,7 +116,6 @@ class Summary(object):
     def add_base(self, results, alpha=0.05, float_format="%.4f", title=None,
                  xname=None, yname=None):
         '''Try to construct a basic summary instance.
-
         Parameters
         ----------
         results : Model results instance
@@ -362,7 +359,6 @@ def summary_model(results):
 def summary_params(results, yname=None, xname=None, alpha=.05, use_t=True,
                    skip_header=False, float_format="%.4f"):
     '''create a summary table of parameters from results instance
-
     Parameters
     ----------
     res : results instance
@@ -382,7 +378,6 @@ def summary_params(results, yname=None, xname=None, alpha=.05, use_t=True,
         header row is added.
     float_format : string
         float formatting options (e.g. ".3g")
-
     Returns
     -------
     params_table : SimpleTable instance
@@ -514,27 +509,29 @@ def _col_params(result, float_format='%.4f', stars=True,show='t'):
     except (AttributeError):
         res.columns = result.model.dependent.vars
     
+    
     # I added the index name transfromation function 
     # to deal with MultiIndex and single level index.
     def _Intercept_2const(df):
         from pandas.core.indexes.multi import MultiIndex
-        if df.index.contains('Intercept'):
-            if isinstance(df.index,MultiIndex):
-                new_index = []
-                for i in df.index.values:
-                    i = list(i)
-                    if 'Intercept' in i:
-                        i[i.index('Intercept')] = 'const'
-                    new_index.append(i)
-                multi_index = lzip(*new_index)
-                df.index = MultiIndex.from_arrays(multi_index)
-            else:
-                index_list = df.index.tolist()
-                idx = index_list.index('Intercept')
-                index_list[idx] = 'const'
-                df.index = index_list
+        if isinstance(df.index, MultiIndex):
+            new_index = []
+            for v in df.index.values:
+                v = list(v)
+                if 'Intercept' in v:
+                    v[v.index('Intercept')] = 'const'
+                new_index.append(v)
+            multi_index = lzip(*new_index)
+            df.index = MultiIndex.from_arrays(multi_index)            
+        else:
+            index_value = df.index.tolist()
+            if 'Intercept' in index_value:
+                index_value[index_value.index('Intercept')] = 'const'
+            df.index = index_value
         return df
     return _Intercept_2const(res)
+
+
 
 # def _col_info(result, info_dict=None):
 #     '''Stack model info in a column
@@ -648,7 +645,6 @@ def summary_col(results, float_format='%.4f', model_names=[], stars=True,
     # finally assigned the regressor_order a initial value ['const']
     """
     Summarize multiple results instances side-by-side (coefs and SEs)
-
     Parameters
     ----------
     results : statsmodels results instance or list of result instances
